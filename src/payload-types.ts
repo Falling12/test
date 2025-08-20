@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    cars: Car;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -77,12 +78,13 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    cars: CarsSelect<false> | CarsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   globals: {};
   globalsSelect: {};
@@ -118,7 +120,7 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -142,8 +144,8 @@ export interface User {
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
-  alt: string;
+  id: number;
+  alt?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -158,23 +160,86 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cars".
+ */
+export interface Car {
+  id: number;
+  car_details: {
+    manufacturer: string;
+    model: string;
+    additional_info?: string | null;
+    design?:
+      | ('sedan' | 'hatchback' | 'suv' | 'coupe' | 'convertible' | 'sports_car' | 'electric' | 'hybrid' | 'other')
+      | null;
+    year: number;
+    seats: number;
+    kilometers: number;
+    drive: 'front_wheel_drive' | 'rear_wheel_drive' | 'all_wheel_drive';
+    fuel_type: 'petrol' | 'diesel' | 'hybrid' | 'electric';
+    engine_power: string;
+    gearbox: 'manual' | 'automatic' | 'semi_automatic';
+    engine_displacements: number;
+    exterior_color: 'white' | 'black' | 'red' | 'blue' | 'green';
+    interior_color: 'white' | 'black' | 'red' | 'blue' | 'green';
+    interior_material: 'alcantara' | 'leather';
+    promotion?: {
+      /**
+       * A listázott nézetben a gépjármű kártyáján megjelenő sárga sávos szöveg.
+       */
+      is_promotional?: boolean | null;
+      promotion_text?: string | null;
+    };
+  };
+  packages_prices?: {
+    renting?: {
+      is_rentable?: boolean | null;
+      renting_price_per_month?: number | null;
+    };
+    subscription?: {
+      is_subscribable?: boolean | null;
+      subscription_price_per_day?: number | null;
+      subscription_price_per_month?: number | null;
+      subscription_price_per_quarter?: number | null;
+      subscription_price_per_half_year?: number | null;
+      subscription_price_per_year?: number | null;
+    };
+    lease?: {
+      is_leasable?: boolean | null;
+      lease_price_per_month?: number | null;
+    };
+    car_category?: {
+      excepted_mileage?: ('high' | 'low' | 'medium') | null;
+    };
+  };
+  preview?: {
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'cars';
+        value: number | Car;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -184,10 +249,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -207,7 +272,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -252,6 +317,75 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cars_select".
+ */
+export interface CarsSelect<T extends boolean = true> {
+  car_details?:
+    | T
+    | {
+        manufacturer?: T;
+        model?: T;
+        additional_info?: T;
+        design?: T;
+        year?: T;
+        seats?: T;
+        kilometers?: T;
+        drive?: T;
+        fuel_type?: T;
+        engine_power?: T;
+        gearbox?: T;
+        engine_displacements?: T;
+        exterior_color?: T;
+        interior_color?: T;
+        interior_material?: T;
+        promotion?:
+          | T
+          | {
+              is_promotional?: T;
+              promotion_text?: T;
+            };
+      };
+  packages_prices?:
+    | T
+    | {
+        renting?:
+          | T
+          | {
+              is_rentable?: T;
+              renting_price_per_month?: T;
+            };
+        subscription?:
+          | T
+          | {
+              is_subscribable?: T;
+              subscription_price_per_day?: T;
+              subscription_price_per_month?: T;
+              subscription_price_per_quarter?: T;
+              subscription_price_per_half_year?: T;
+              subscription_price_per_year?: T;
+            };
+        lease?:
+          | T
+          | {
+              is_leasable?: T;
+              lease_price_per_month?: T;
+            };
+        car_category?:
+          | T
+          | {
+              excepted_mileage?: T;
+            };
+      };
+  preview?:
+    | T
+    | {
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
