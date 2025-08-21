@@ -57,16 +57,13 @@ export default function SubscriptionOptionsForm({ car, imageUrl, type }: Subscri
 
     const handleSubmit = (values: FormValues) => {
         if (type === 'is_rentable') {
-            // For rentable cars, we don't need a subscription plan
-            setSelectedPlan('quarterly') // Default value, but won't be used
+            setSelectedPlan('quarterly')
         } else {
             setSelectedPlan(values.subscription)
         }
         setIsDialogOpen(true)
     }
 
-    // For rentable cars, always render the form (even if subscription options aren't available)
-    // to enable the email dialog functionality
     if (type !== 'is_rentable' && (!subscription || options.length === 0)) {
         return null
     }

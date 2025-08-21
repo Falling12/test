@@ -206,7 +206,7 @@ export default function EmailDialog({ open, onOpenChange, carInfo }: EmailDialog
 
     if (isMobile) {
         return (
-            <Drawer open={open} onOpenChange={onOpenChange}>
+            <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
                 <DrawerContent className="max-h-[80vh]">
                     <DrawerHeader className="text-left">
                         <DrawerTitle>Kapcsolati adatok megadása</DrawerTitle>
