@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     cars: Car;
+    reservations: Reservation;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -79,6 +80,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     cars: CarsSelect<false> | CarsSelect<true>;
+    reservations: ReservationsSelect<false> | ReservationsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -197,8 +199,6 @@ export interface Car {
     };
     subscription?: {
       is_subscribable?: boolean | null;
-      subscription_price_per_day?: number | null;
-      subscription_price_per_month?: number | null;
       subscription_price_per_quarter?: number | null;
       subscription_price_per_half_year?: number | null;
       subscription_price_per_year?: number | null;
@@ -214,6 +214,24 @@ export interface Car {
   preview?: {
     image?: (number | null) | Media;
   };
+  model?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reservations".
+ */
+export interface Reservation {
+  id: number;
+  email: string;
+  name: string;
+  phone: string;
+  car: number | Car;
+  type: 'rental' | 'leasing' | 'subscription';
+  subscription_type?: ('quarterly' | 'halfyearly' | 'yearly') | null;
+  leasing_price?: number | null;
+  rental_price?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -235,6 +253,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'cars';
         value: number | Car;
+      } | null)
+    | ({
+        relationTo: 'reservations';
+        value: number | Reservation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -361,8 +383,6 @@ export interface CarsSelect<T extends boolean = true> {
           | T
           | {
               is_subscribable?: T;
-              subscription_price_per_day?: T;
-              subscription_price_per_month?: T;
               subscription_price_per_quarter?: T;
               subscription_price_per_half_year?: T;
               subscription_price_per_year?: T;
@@ -384,6 +404,23 @@ export interface CarsSelect<T extends boolean = true> {
     | {
         image?: T;
       };
+  model?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reservations_select".
+ */
+export interface ReservationsSelect<T extends boolean = true> {
+  email?: T;
+  name?: T;
+  phone?: T;
+  car?: T;
+  type?: T;
+  subscription_type?: T;
+  leasing_price?: T;
+  rental_price?: T;
   updatedAt?: T;
   createdAt?: T;
 }

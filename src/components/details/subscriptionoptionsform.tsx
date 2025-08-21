@@ -1,34 +1,53 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'
 import { RadioGroup } from '@/components/ui/radio-group'
 import SubscriptionDetailCard from '@/components/details/subscriptiondetailcard'
 import { Car } from '@/payload-types'
+import EmailDialog from './emaildialog'
 
-type FormValues = {
-    subscription: 'daily' | 'monthly' | 'quarterly' | 'halfyearly' | 'yearly'
+const SUBSCRIPTION_TYPES = {
+    QUARTERLY: 'quarterly',
+    HALFYEARLY: 'halfyearly',
+    YEARLY: 'yearly'
+} as const
+
+type SubscriptionType = typeof SUBSCRIPTION_TYPES[keyof typeof SUBSCRIPTION_TYPES]
+
+export type FormValues = {
+    subscription: SubscriptionType
+}
+
+const getSubscriptionPrice = (subscription: any, type: SubscriptionType): number => {
+    const priceMap = {
+        [SUBSCRIPTION_TYPES.QUARTERLY]: subscription?.subscription_price_per_quarter,
+        [SUBSCRIPTION_TYPES.HALFYEARLY]: subscription?.subscription_price_per_half_year,
+        [SUBSCRIPTION_TYPES.YEARLY]: subscription?.subscription_price_per_year
+    }
+    return priceMap[type] ?? 0
+}
+
+const getAvailableOptions = (subscription: any): SubscriptionType[] => {
+    return Object.values(SUBSCRIPTION_TYPES).filter(type =>
+        getSubscriptionPrice(subscription, type) > 0
+    )
 }
 
 interface SubscriptionOptionsFormProps {
     car: Car
-    formId?: string
-    onSubmit?: (data: { carId: number, plan: FormValues['subscription'] }) => void
+    imageUrl: string
+    type?: string
 }
 
-export default function SubscriptionOptionsForm({ car, formId = 'subscription-form', onSubmit }: SubscriptionOptionsFormProps) {
+export default function SubscriptionOptionsForm({ car, imageUrl, type }: SubscriptionOptionsFormProps) {
     const subscription = car.packages_prices?.subscription
-
-    const options = [
-        subscription?.subscription_price_per_day != null ? 'daily' : null,
-        subscription?.subscription_price_per_month != null ? 'monthly' : null,
-        subscription?.subscription_price_per_quarter != null ? 'quarterly' : null,
-        subscription?.subscription_price_per_half_year != null ? 'halfyearly' : null,
-        subscription?.subscription_price_per_year != null ? 'yearly' : null,
-    ].filter(Boolean) as FormValues['subscription'][]
-
+    const options = getAvailableOptions(subscription)
     const defaultPlan = options[0]
+
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [selectedPlan, setSelectedPlan] = useState<SubscriptionType>(defaultPlan)
 
     const form = useForm<FormValues>({
         defaultValues: {
@@ -37,20 +56,24 @@ export default function SubscriptionOptionsForm({ car, formId = 'subscription-fo
     })
 
     const handleSubmit = (values: FormValues) => {
-        if (onSubmit) {
-            onSubmit({ carId: car.id, plan: values.subscription })
+        if (type === 'is_rentable') {
+            // For rentable cars, we don't need a subscription plan
+            setSelectedPlan('quarterly') // Default value, but won't be used
         } else {
-            console.log('Selected subscription', { carId: car.id, plan: values.subscription })
+            setSelectedPlan(values.subscription)
         }
+        setIsDialogOpen(true)
     }
 
-    if (!subscription || options.length === 0) {
+    // For rentable cars, always render the form (even if subscription options aren't available)
+    // to enable the email dialog functionality
+    if (type !== 'is_rentable' && (!subscription || options.length === 0)) {
         return null
     }
 
     return (
         <Form {...form}>
-            <form id={formId} onSubmit={form.handleSubmit(handleSubmit)} className='flex flex-col gap-3'>
+            <form id="subscription-form" onSubmit={form.handleSubmit(handleSubmit)} className='flex flex-col gap-3'>
                 <FormField
                     control={form.control}
                     name="subscription"
@@ -62,17 +85,16 @@ export default function SubscriptionOptionsForm({ car, formId = 'subscription-fo
                                     onValueChange={field.onChange}
                                     className='grid gap-3'
                                 >
-                                    {options.map((opt) => (
+                                    {options.map((type) => (
                                         <SubscriptionDetailCard
-                                            key={opt}
-                                            type={opt}
-                                            value={opt}
-                                            isSelected={field.value === opt}
-                                            price={subscription.subscription_price_per_day ?? 0}
-                                            price_per_month={subscription.subscription_price_per_month ?? 0}
-                                            price_per_quarter={subscription.subscription_price_per_quarter ?? 0}
-                                            price_per_halfyear={subscription.subscription_price_per_half_year ?? 0}
-                                            price_per_year={subscription.subscription_price_per_year ?? 0}
+                                            key={type}
+                                            type={type}
+                                            value={type}
+                                            isSelected={field.value === type}
+                                            price={getSubscriptionPrice(subscription, type)}
+                                            price_per_quarter={getSubscriptionPrice(subscription, SUBSCRIPTION_TYPES.QUARTERLY)}
+                                            price_per_halfyear={getSubscriptionPrice(subscription, SUBSCRIPTION_TYPES.HALFYEARLY)}
+                                            price_per_year={getSubscriptionPrice(subscription, SUBSCRIPTION_TYPES.YEARLY)}
                                         />
                                     ))}
                                 </RadioGroup>
@@ -80,9 +102,27 @@ export default function SubscriptionOptionsForm({ car, formId = 'subscription-fo
                         </FormItem>
                     )}
                 />
+
+                <EmailDialog
+                    open={isDialogOpen}
+                    onOpenChange={setIsDialogOpen}
+                    carInfo={{
+                        id: car.id.toString(),
+                        manufacturer: car.car_details.manufacturer,
+                        model: car.car_details.model,
+                        subscriptionPlan: type === 'is_rentable' ? undefined : selectedPlan,
+                        additionalInfo: car.car_details.additional_info || undefined,
+                        imageUrl: encodeURIComponent(imageUrl),
+                        year: car.car_details.year?.toString(),
+                        kilometers: car.car_details.kilometers?.toString(),
+                        fuelType: car.car_details.fuel_type,
+                        gearbox: car.car_details.gearbox,
+                        type: type,
+                        leasingPrice: car.packages_prices?.lease?.lease_price_per_month ?? undefined,
+                        rentalPrice: car.packages_prices?.renting?.renting_price_per_month ?? undefined
+                    }}
+                />
             </form>
         </Form>
     )
 }
-
-

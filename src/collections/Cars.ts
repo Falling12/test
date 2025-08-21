@@ -8,6 +8,8 @@ export const Cars: CollectionConfig = {
     },
     admin: {
         group: 'Adminisztráció',
+        useAsTitle: 'model',
+        defaultColumns: ['car_details.manufacturer', 'car_details.model', 'car_details.year', 'car_details.kilometers'],
     },
     fields: [
         {
@@ -342,18 +344,6 @@ export const Cars: CollectionConfig = {
                                     fields: [
                                         {
                                             type: 'number',
-                                            name: 'subscription_price_per_day',
-                                            label: 'Napi díj',
-                                            required: false,
-                                        },
-                                        {
-                                            type: 'number',
-                                            name: 'subscription_price_per_month',
-                                            label: 'Havi díj',
-                                            required: false,
-                                        },
-                                        {
-                                            type: 'number',
                                             name: 'subscription_price_per_quarter',
                                             label: 'Negyedéves díj',
                                             required: false,
@@ -443,5 +433,19 @@ export const Cars: CollectionConfig = {
                 }
             ]
         },
+        {
+            name: 'model',
+            type: 'text',
+            admin: {
+                hidden: true,
+            },
+            hooks: {
+                beforeChange: [
+                    ({ data }) => {
+                        return data?.car_details?.manufacturer + ' ' + data?.car_details?.model + ' ' + data?.car_details?.year
+                    }
+                ]
+            }
+        }
     ],
 }

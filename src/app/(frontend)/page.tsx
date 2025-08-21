@@ -4,6 +4,7 @@ import payloadConfig from "@/payload.config"
 import { getPayload } from "payload"
 import { Car } from "@/payload-types"
 import { Suspense } from "react"
+import Filters from "@/components/listing/filters"
 
 type CarsResponse = {
   docs: Car[]
@@ -18,11 +19,32 @@ type CarsResponse = {
 
 const PAGE_SIZE = 9
 
-const fetchCars = async (page: number): Promise<CarsResponse> => {
+const fetchCars = async (page: number, filter?: string): Promise<CarsResponse> => {
   try {
     const payload = await getPayload({
       config: payloadConfig
     })
+
+    // Build where clause based on filter
+    let where: any = {}
+    if (filter === 'is_rentable') {
+      where = {
+        'packages_prices.renting.is_rentable': { equals: true }
+      }
+    } else if (filter === 'is_subscribable') {
+      where = {
+        'packages_prices.subscription.is_subscribable': { equals: true }
+      }
+    } else if (filter === 'is_leasable') {
+      where = {
+        'packages_prices.lease.is_leasable': { equals: true }
+      }
+    } else {
+      // Default to rentable if no filter specified
+      where = {
+        'packages_prices.renting.is_rentable': { equals: true }
+      }
+    }
 
     const cars = await payload.find({
       collection: 'cars',
@@ -31,6 +53,7 @@ const fetchCars = async (page: number): Promise<CarsResponse> => {
       page,
       sort: '-createdAt',
       pagination: true,
+      where,
     })
 
     return cars as unknown as CarsResponse
@@ -94,20 +117,29 @@ function CarsGridSkeleton() {
 }
 
 // Component that fetches and displays cars
-async function CarsContent({ currentPage }: { currentPage: number }) {
-  const carsRes = await fetchCars(currentPage)
+async function CarsContent({ currentPage, filter }: { currentPage: number, filter?: string }) {
+  const carsRes = await fetchCars(currentPage, filter)
   const pages = getPaginationRange(carsRes.page, carsRes.totalPages)
+
+  // Helper function to build URL with filter parameter
+  const buildUrl = (page: number) => {
+    const params = new URLSearchParams()
+    params.set('page', page.toString())
+    // Always include filter, default to is_rentable if not provided
+    params.set('filter', filter || 'is_rentable')
+    return `/?${params.toString()}`
+  }
 
   return (
     <>
-      <ListingGrid cars={carsRes.docs} />
+      <ListingGrid cars={carsRes.docs} filter={filter || 'is_rentable'} />
 
       {carsRes.totalPages > 1 && (
         <Pagination className="mt-2">
           <PaginationContent>
             {carsRes.page > 1 && (
               <PaginationItem>
-                <PaginationPrevious href={`/?page=${carsRes.page - 1}`} prefetch={true} scroll={false} />
+                <PaginationPrevious href={buildUrl(carsRes.page - 1)} prefetch={true} scroll={false} />
               </PaginationItem>
             )}
 
@@ -116,7 +148,7 @@ async function CarsContent({ currentPage }: { currentPage: number }) {
                 {p === 'ellipsis' ? (
                   <PaginationEllipsis />
                 ) : (
-                  <PaginationLink href={`/?page=${p}`} isActive={p === carsRes.page} prefetch={true} scroll={false}>
+                  <PaginationLink href={buildUrl(p as number)} isActive={p === carsRes.page} prefetch={true} scroll={false}>
                     {p}
                   </PaginationLink>
                 )}
@@ -125,7 +157,7 @@ async function CarsContent({ currentPage }: { currentPage: number }) {
 
             {carsRes.page < carsRes.totalPages && (
               <PaginationItem>
-                <PaginationNext href={`/?page=${carsRes.page + 1}`} prefetch={true} scroll={false} />
+                <PaginationNext href={buildUrl(carsRes.page + 1)} prefetch={true} scroll={false} />
               </PaginationItem>
             )}
           </PaginationContent>
@@ -135,9 +167,10 @@ async function CarsContent({ currentPage }: { currentPage: number }) {
   )
 }
 
-export default async function HomePage({ searchParams }: { searchParams?: Promise<{ page?: string }> }) {
-  const { page: pageParam } = await searchParams ?? {}
+export default async function HomePage({ searchParams }: { searchParams?: Promise<{ page?: string, filter?: string }> }) {
+  const { page: pageParam, filter } = await searchParams ?? {}
   const currentPage = Math.max(1, Number(pageParam) || 1)
+  const defaultFilter = filter || 'is_rentable'
 
   return (
     <div className="flex flex-col gap-8 px-[15%] py-8 max-[1400px]:px-[10%] max-[900px]:px-[3%]">
@@ -145,8 +178,10 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         Elérhető autóink
       </h1>
 
-      <Suspense key={currentPage} fallback={<CarsGridSkeleton />}>
-        <CarsContent currentPage={currentPage} />
+      <Filters />
+
+      <Suspense key={`${currentPage}-${defaultFilter}`} fallback={<CarsGridSkeleton />}>
+        <CarsContent currentPage={currentPage} filter={defaultFilter} />
       </Suspense>
     </div>
   )

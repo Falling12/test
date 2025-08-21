@@ -2,6 +2,7 @@ import React from 'react'
 import './globals.css'
 import Header from '@/components/ui/header'
 import { Inter } from 'next/font/google'
+import { Toaster } from '@/components/ui/sonner'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -21,6 +22,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <body className={inter.variable}>
         <Header />
         <main>{children}</main>
+        <Toaster />
       </body>
     </html>
   )

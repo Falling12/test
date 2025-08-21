@@ -35,8 +35,15 @@ const getCar = async (id: string): Promise<Car | null> => {
     }
 }
 
-export default async function CarDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CarDetailsPage({
+    params,
+    searchParams
+}: {
+    params: Promise<{ id: string }>
+    searchParams?: Promise<{ type?: string }>
+}) {
     const { id } = await params
+    const { type } = await searchParams ?? {}
 
     const car = await getCar(id)
 
@@ -47,10 +54,29 @@ export default async function CarDetailsPage({ params }: { params: Promise<{ id:
     return (
         <div className='flex flex-col px-[15%] pb-8 max-[1400px]:px-[10%] max-[900px]:px-[3%] max-[768px]:px-0'>
             <div className='bg-white p-4 border-t border-border px-4 py-4 gap-8 hidden max-[768px]:flex fixed bottom-0 z-10 w-full items-center justify-center'>
-                <Button variant='default' className='w-full' form="subscription-form" type="submit">
-                    Szeretném ezt az autót
-                </Button>
+                {
+                    type === 'is_subscribable' && (
+                        <Button variant='default' className='w-full' form="subscription-form" type="submit">
+                            Szeretném ezt az autót
+                        </Button>
+                    )
+                }
+
+                {
+                    type === 'is_rentable' && (
+                        <>
+                            <p className='font-bold text-xl text-right'>
+                                {car.packages_prices?.renting?.renting_price_per_month?.toLocaleString('hu-HU', { style: 'currency', currency: 'HUF', maximumFractionDigits: 0, minimumFractionDigits: 0 })} / hó
+                            </p>
+
+                            <Button variant='default' className='' form="subscription-form" type="submit">
+                                Szeretném ezt az autót
+                            </Button>
+                        </>
+                    )
+                }
             </div>
+
             <div className='flex items-start justify-between sticky top-0 bg-white/80 z-10 py-8 backdrop-blur-xs max-[768px]:hidden'>
                 <div className='flex flex-col gap-2'>
                     <h1 className='font-semibold text-3xl'>
@@ -69,9 +95,27 @@ export default async function CarDetailsPage({ params }: { params: Promise<{ id:
                     </div>
                 </div>
 
-                <Button variant='default' className='w-fit' form="subscription-form" type="submit">
-                    Szeretném ezt az autót
-                </Button>
+                {
+                    type === 'is_rentable' && (
+                        <div className='flex flex-col gap-2'>
+                            <p className='font-bold text-xl text-right'>
+                                {car.packages_prices?.renting?.renting_price_per_month?.toLocaleString('hu-HU', { style: 'currency', currency: 'HUF', maximumFractionDigits: 0, minimumFractionDigits: 0 })} / hó
+                            </p>
+
+                            <Button variant='default' className='w-fit' form="subscription-form" type="submit">
+                                Szeretném ezt az autót
+                            </Button>
+                        </div>
+                    )
+                }
+
+                {
+                    type === 'is_subscribable' && (
+                        <Button variant='default' className='w-fit' form="subscription-form" type="submit">
+                            Szeretném ezt az autót
+                        </Button>
+                    )
+                }
             </div>
 
             <div className='flex flex-row items-start justify-between gap-4 max-[768px]:flex-col'>
@@ -113,20 +157,32 @@ export default async function CarDetailsPage({ params }: { params: Promise<{ id:
                 />
 
                 <div className='flex flex-col gap-4 max-w-[60%] w-full max-[768px]:max-w-full max-[768px]:px-[3%]'>
-                    <div className='flex flex-col gap-1.5'>
-                        <h3 className='font-medium text-sm'>
-                            Előfizetési opciók
-                        </h3>
+                    {
+                        type === 'is_subscribable' && (
+                            <div className='flex flex-col gap-1.5'>
+                                <h3 className='font-medium text-sm'>
+                                    Előfizetési opciók
+                                </h3>
 
-                        {/* Subscription options as radio group */}
-                        <SubscriptionOptionsForm car={car} />
+                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} />
 
-                        <div className='flex items-center justify-center p-3 bg-yellow-100 rounded-md gap-2'>
-                            <p className='text-sm text-[#575757]'>
-                                Előfizetés esetén válassz új autót havonta, elérhető modelljeink közül, változó igényeid szerint. Minden autó maximum egy hónapig használható, hogy számodra megfelelő kínálattal szolgálhassunk minden alkalommal.
-                            </p>
-                        </div>
-                    </div>
+                                <div className='flex items-center justify-center p-3 bg-yellow-100 rounded-md gap-2'>
+                                    <p className='text-sm text-[#575757]'>
+                                        Előfizetés esetén válassz új autót havonta, elérhető modelljeink közül, változó igényeid szerint. Minden autó maximum egy hónapig használható, hogy számodra megfelelő kínálattal szolgálhassunk minden alkalommal.
+                                    </p>
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    {
+                        type === 'is_rentable' && (
+                            <div className='hidden'>
+                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} />
+                            </div>
+                        )
+                    }
+
 
                     <div className='flex flex-col gap-1.5'>
                         <h3 className='font-medium text-sm'>

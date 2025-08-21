@@ -1,4 +1,5 @@
-import { getImageAlt, getImageUrl } from '@/lib/server-utils'
+"use client"
+
 import { Car } from '@/payload-types'
 import Image from 'next/image'
 import React from 'react'
@@ -6,20 +7,17 @@ import DetailChip from './detailchip'
 import { getFuelType, getTransmissionType } from '@/lib/listingutils'
 import Link from 'next/link'
 
-interface CarCardProps {
+interface CarCardClientProps {
     car: Car
-    filter?: string
+    imageUrl: string
 }
 
-export default async function CarCard({ car, filter }: CarCardProps) {
-    // Build href with filter parameter if provided
-    const href = filter ? `/details/${car.id}?type=${filter}` : `/details/${car.id}`
-
+export default function CarCardClient({ car, imageUrl }: CarCardClientProps) {
     return (
-        <Link href={href} className="relative w-full aspect-[378/339] group hover:translate-y-[-5px] transition-all duration-300">
+        <Link href={`/details/${car.id}`} className="relative w-full h-full aspect-[378/339] group hover:translate-y-[-5px] transition-all duration-300">
             <Image
-                src={await getImageUrl(car.preview?.image)}
-                alt={getImageAlt(car.preview?.image)}
+                src={imageUrl}
+                alt={`${car.car_details.manufacturer} ${car.car_details.model}`}
                 fill
                 sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                 className='rounded-lg object-cover'
@@ -45,13 +43,13 @@ export default async function CarCard({ car, filter }: CarCardProps) {
                 </div>
             </div>
 
-            {
+            {/* {
                 car.car_details.promotion?.is_promotional && (
                     <div className='absolute top-[96%] left-1/2 -translate-x-1/2 bg-yellow-300 rounded-full text-black px-2 py-1 text-xs w-[90%] font-medium text-center'>
                         {car.car_details.promotion?.promotion_text}
                     </div>
                 )
-            }
+            } */}
         </Link>
     )
 }
