@@ -13,6 +13,8 @@ import { Cars } from './collections/Cars'
 import { Reservations } from './collections/Reservations'
 import { ASZF } from './collections/ASZF'
 import { SubscriptionsFAQ } from './collections/SubscriptionsFAQ'
+import { About } from './collections/About'
+import { PickupDropoffTimes } from './collections/PickupDropoffTimes'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -25,7 +27,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Cars, Reservations],
-  globals: [ASZF, SubscriptionsFAQ],
+  globals: [ASZF, SubscriptionsFAQ, About, PickupDropoffTimes],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

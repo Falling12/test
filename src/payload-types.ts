@@ -91,10 +91,14 @@ export interface Config {
   globals: {
     aszf: Aszf;
     'subscriptions-faq': SubscriptionsFaq;
+    about: About;
+    'pickup-dropoff-times': PickupDropoffTime;
   };
   globalsSelect: {
     aszf: AszfSelect<false> | AszfSelect<true>;
     'subscriptions-faq': SubscriptionsFaqSelect<false> | SubscriptionsFaqSelect<true>;
+    about: AboutSelect<false> | AboutSelect<true>;
+    'pickup-dropoff-times': PickupDropoffTimesSelect<false> | PickupDropoffTimesSelect<true>;
   };
   locale: null;
   user: User & {
@@ -205,16 +209,37 @@ export interface Car {
     renting?: {
       is_rentable?: boolean | null;
       renting_price_per_month?: string | null;
+      benefits?:
+        | {
+            icon?: (number | null) | Media;
+            text: string;
+            id?: string | null;
+          }[]
+        | null;
     };
     subscription?: {
       is_subscribable?: boolean | null;
       subscription_price_per_quarter?: number | null;
       subscription_price_per_half_year?: number | null;
       subscription_price_per_year?: number | null;
+      benefits?:
+        | {
+            icon?: (number | null) | Media;
+            text: string;
+            id?: string | null;
+          }[]
+        | null;
     };
     lease?: {
       is_leasable?: boolean | null;
       lease_price_per_month?: string | null;
+      benefits?:
+        | {
+            icon?: (number | null) | Media;
+            text: string;
+            id?: string | null;
+          }[]
+        | null;
     };
     car_category?: {
       excepted_mileage?: ('high' | 'low' | 'medium') | null;
@@ -241,6 +266,8 @@ export interface Reservation {
   subscription_type?: ('quarterly' | 'halfyearly' | 'yearly') | null;
   rental_period_start?: string | null;
   rental_period_end?: string | null;
+  pickup_time?: string | null;
+  dropoff_time?: string | null;
   subscription_period_start?: string | null;
   subscription_period_end?: string | null;
   updatedAt: string;
@@ -394,6 +421,13 @@ export interface CarsSelect<T extends boolean = true> {
           | {
               is_rentable?: T;
               renting_price_per_month?: T;
+              benefits?:
+                | T
+                | {
+                    icon?: T;
+                    text?: T;
+                    id?: T;
+                  };
             };
         subscription?:
           | T
@@ -402,12 +436,26 @@ export interface CarsSelect<T extends boolean = true> {
               subscription_price_per_quarter?: T;
               subscription_price_per_half_year?: T;
               subscription_price_per_year?: T;
+              benefits?:
+                | T
+                | {
+                    icon?: T;
+                    text?: T;
+                    id?: T;
+                  };
             };
         lease?:
           | T
           | {
               is_leasable?: T;
               lease_price_per_month?: T;
+              benefits?:
+                | T
+                | {
+                    icon?: T;
+                    text?: T;
+                    id?: T;
+                  };
             };
         car_category?:
           | T
@@ -437,6 +485,8 @@ export interface ReservationsSelect<T extends boolean = true> {
   subscription_type?: T;
   rental_period_start?: T;
   rental_period_end?: T;
+  pickup_time?: T;
+  dropoff_time?: T;
   subscription_period_start?: T;
   subscription_period_end?: T;
   updatedAt?: T;
@@ -516,6 +566,41 @@ export interface SubscriptionsFaq {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about".
+ */
+export interface About {
+  id: number;
+  content?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pickup-dropoff-times".
+ */
+export interface PickupDropoffTime {
+  id: number;
+  pickup_times?:
+    | {
+        time?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  dropoff_times?:
+    | {
+        time?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  pickup_warning_before_or_at?: string | null;
+  pickup_warning_message?: string | null;
+  dropoff_warning_after_or_at?: string | null;
+  dropoff_warning_message?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "aszf_select".
  */
 export interface AszfSelect<T extends boolean = true> {
@@ -536,6 +621,41 @@ export interface SubscriptionsFaqSelect<T extends boolean = true> {
         answer?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about_select".
+ */
+export interface AboutSelect<T extends boolean = true> {
+  content?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pickup-dropoff-times_select".
+ */
+export interface PickupDropoffTimesSelect<T extends boolean = true> {
+  pickup_times?:
+    | T
+    | {
+        time?: T;
+        id?: T;
+      };
+  dropoff_times?:
+    | T
+    | {
+        time?: T;
+        id?: T;
+      };
+  pickup_warning_before_or_at?: T;
+  pickup_warning_message?: T;
+  dropoff_warning_after_or_at?: T;
+  dropoff_warning_message?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

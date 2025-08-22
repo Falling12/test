@@ -100,6 +100,18 @@ export const Reservations: CollectionConfig = {
             }
         },
         {
+            name: 'pickup_time',
+            label: 'Átvételi idő',
+            type: 'text',
+            required: false,
+        },
+        {
+            name: 'dropoff_time',
+            label: 'Leadási idő',
+            type: 'text',
+            required: false,
+        },
+        {
             name: 'subscription_period_start',
             label: 'Előfizetési időszak kezdete',
             type: 'date',

@@ -7,6 +7,7 @@ import { RadioGroup } from '@/components/ui/radio-group'
 import SubscriptionDetailCard from '@/components/details/subscriptiondetailcard'
 import { Car, SubscriptionsFaq } from '@/payload-types'
 import EmailDialog from './emaildialog'
+import { useSearchParams } from 'next/navigation'
 
 const SUBSCRIPTION_TYPES = {
     QUARTERLY: 'quarterly',
@@ -40,15 +41,26 @@ interface SubscriptionOptionsFormProps {
     imageUrl: string
     type?: string
     faqData?: SubscriptionsFaq
+    times?: {
+        pickupOptions?: string[]
+        dropoffOptions?: string[]
+        pickupWarnHour?: number | null
+        dropoffWarnHour?: number | null
+        pickupWarnMsg?: string
+        dropoffWarnMsg?: string
+    }
 }
 
-export default function SubscriptionOptionsForm({ car, imageUrl, type, faqData }: SubscriptionOptionsFormProps) {
+export default function SubscriptionOptionsForm({ car, imageUrl, type, faqData, times }: SubscriptionOptionsFormProps) {
     const subscription = car.packages_prices?.subscription
     const options = getAvailableOptions(subscription)
     const defaultPlan = options[2]
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedPlan, setSelectedPlan] = useState<SubscriptionType>(defaultPlan)
+    const searchParams = useSearchParams()
+    const rentalStart = searchParams.get('startDate')
+    const rentalEnd = searchParams.get('endDate')
 
     const form = useForm<FormValues>({
         defaultValues: {
@@ -91,6 +103,7 @@ export default function SubscriptionOptionsForm({ car, imageUrl, type, faqData }
                             leasingPrice: car.packages_prices?.lease?.lease_price_per_month ?? undefined,
                             rentalPrice: car.packages_prices?.renting?.renting_price_per_month ?? undefined
                         }}
+                        times={times}
                     />
                 </form>
             </Form>
@@ -150,8 +163,11 @@ export default function SubscriptionOptionsForm({ car, imageUrl, type, faqData }
                         gearbox: car.car_details.gearbox,
                         type: type,
                         leasingPrice: car.packages_prices?.lease?.lease_price_per_month ?? undefined,
-                        rentalPrice: car.packages_prices?.renting?.renting_price_per_month ?? undefined
+                        rentalPrice: car.packages_prices?.renting?.renting_price_per_month ?? undefined,
+                        rentalStartDateStr: rentalStart || undefined,
+                        rentalEndDateStr: rentalEnd || undefined
                     }}
+                    times={times}
                 />
             </form>
         </Form>

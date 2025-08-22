@@ -374,6 +374,35 @@ export const Cars: CollectionConfig = {
                                     label: 'Havidíj',
                                     type: 'text',
                                     required: false,
+                                },
+                                {
+                                    type: 'array',
+                                    name: 'benefits',
+                                    label: 'Termék előnyök',
+                                    labels: {
+                                        singular: 'Előny',
+                                        plural: 'Előnyök'
+                                    },
+                                    fields: [
+                                        {
+                                            type: 'row',
+                                            fields: [
+                                                {
+                                                    type: 'upload',
+                                                    relationTo: 'media',
+                                                    name: 'icon',
+                                                    label: 'SVG ikon',
+                                                    required: false,
+                                                },
+                                                {
+                                                    type: 'text',
+                                                    name: 'text',
+                                                    label: 'Szöveg',
+                                                    required: true,
+                                                }
+                                            ]
+                                        }
+                                    ]
                                 }
                             ],
                         },
@@ -411,6 +440,35 @@ export const Cars: CollectionConfig = {
                                         }
                                     ]
                                 },
+                                {
+                                    type: 'array',
+                                    name: 'benefits',
+                                    label: 'Termék előnyök',
+                                    labels: {
+                                        singular: 'Előny',
+                                        plural: 'Előnyök'
+                                    },
+                                    fields: [
+                                        {
+                                            type: 'row',
+                                            fields: [
+                                                {
+                                                    type: 'upload',
+                                                    relationTo: 'media',
+                                                    name: 'icon',
+                                                    label: 'SVG ikon',
+                                                    required: false,
+                                                },
+                                                {
+                                                    type: 'text',
+                                                    name: 'text',
+                                                    label: 'Szöveg',
+                                                    required: true,
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
                             ]
                         },
                         {
@@ -429,6 +487,35 @@ export const Cars: CollectionConfig = {
                                     name: 'lease_price_per_month',
                                     label: 'Havi díj',
                                     required: false,
+                                },
+                                {
+                                    type: 'array',
+                                    name: 'benefits',
+                                    label: 'Termék előnyök',
+                                    labels: {
+                                        singular: 'Előny',
+                                        plural: 'Előnyök'
+                                    },
+                                    fields: [
+                                        {
+                                            type: 'row',
+                                            fields: [
+                                                {
+                                                    type: 'upload',
+                                                    relationTo: 'media',
+                                                    name: 'icon',
+                                                    label: 'SVG ikon',
+                                                    required: false,
+                                                },
+                                                {
+                                                    type: 'text',
+                                                    name: 'text',
+                                                    label: 'Szöveg',
+                                                    required: true,
+                                                }
+                                            ]
+                                        }
+                                    ]
                                 }
                             ]
                         },

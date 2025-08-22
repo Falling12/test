@@ -9,10 +9,12 @@ import Link from 'next/link'
 interface CarCardProps {
     car: Car
     filter?: string
+    startDate?: string
+    endDate?: string
 }
 
-export default async function CarCard({ car, filter }: CarCardProps) {
-    const href = filter ? `/details/${car.id}?type=${filter}` : `/details/${car.id}`
+export default async function CarCard({ car, filter, startDate, endDate }: CarCardProps) {
+    const href = filter ? `/details/${car.id}?type=${filter}${startDate && endDate ? `&startDate=${startDate}&endDate=${endDate}` : ''}` : `/details/${car.id}`
 
     const getPriceDisplay = () => {
         switch (filter) {
@@ -52,6 +54,28 @@ export default async function CarCard({ car, filter }: CarCardProps) {
 
     const { price, label, suffix } = getPriceDisplay()
 
+    // Compute total for rentals when date range present; display per-day left, total right
+    const getRentalTotals = () => {
+        if (filter !== 'is_rentable') return undefined
+        if (!startDate || !endDate) return undefined
+        const dailyStr = String(car.packages_prices?.renting?.renting_price_per_month || '')
+        const daily = parseInt(dailyStr.replace(/[^0-9]/g, ''), 10)
+        if (!daily || Number.isNaN(daily)) return undefined
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+        const msPerDay = 1000 * 60 * 60 * 24
+        const days = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / msPerDay))
+        const total = daily * days
+        const formatHuf = (n: number) => new Intl.NumberFormat('hu-HU', { style: 'currency', currency: 'HUF', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n)
+        return {
+            days,
+            dailyFormatted: formatHuf(daily),
+            totalFormatted: formatHuf(total)
+        }
+    }
+
+    const rentalTotals = getRentalTotals()
+
     return (
         <Link href={href} className="relative w-full aspect-[378/339] group hover:translate-y-[-5px] transition-all duration-300" scroll={false}>
             <Image
@@ -84,7 +108,14 @@ export default async function CarCard({ car, filter }: CarCardProps) {
                         {car.car_details.gearbox && <DetailChip label={`${getTransmissionType(car.car_details.gearbox)}`} variant='light' />}
                     </div>
 
-                    <p className='text-white text-xl font-bold'>{label} {price} {suffix}</p>
+                    {filter === 'is_rentable' && rentalTotals ? (
+                        <div className='flex items-center justify-between text-white'>
+                            <p className='text-white text-lg font-semibold'>Napi {rentalTotals.dailyFormatted}</p>
+                            <p className='text-white text-xl font-bold'>{rentalTotals.totalFormatted}</p>
+                        </div>
+                    ) : (
+                        <p className='text-white text-xl font-bold'>{label} {price} {suffix}</p>
+                    )}
                 </div>
             </div>
 
