@@ -1,5 +1,5 @@
-import { revalidateDetailsPage } from '@/lib/revalidatePage';
 import { CollectionConfig } from 'payload'
+import { revalidateCarDetails, revalidateCarListings } from '@/lib/revalidation'
 
 export const Cars: CollectionConfig = {
     slug: 'cars',
@@ -14,8 +14,31 @@ export const Cars: CollectionConfig = {
     },
     hooks: {
         afterChange: [
-            ({ doc }) => {
-                revalidateDetailsPage(doc.id)
+            async ({ doc, operation }) => {
+                try {
+                    if (operation === 'create') {
+                        // Revalidate listing page when new car is created
+                        await revalidateCarListings()
+                        console.log('Revalidated car listings after creating new car')
+                    } else if (operation === 'update') {
+                        // Revalidate specific car detail page when updated
+                        await revalidateCarDetails(doc.id)
+                        console.log(`Revalidated car details page for car ${doc.id}`)
+                    }
+                } catch (error) {
+                    console.error('Error during revalidation:', error)
+                }
+            }
+        ],
+        afterDelete: [
+            async ({ doc }) => {
+                try {
+                    // Revalidate listing page when car is deleted
+                    await revalidateCarListings()
+                    console.log('Revalidated car listings after deleting car')
+                } catch (error) {
+                    console.error('Error during revalidation after delete:', error)
+                }
             }
         ]
     },

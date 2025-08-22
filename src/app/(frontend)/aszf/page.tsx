@@ -19,6 +19,9 @@ const getAszfContent = async () => {
     }
 }
 
+export const revalidate = 3600
+export const dynamic = 'force-static'
+
 export default async function ASZFPage() {
     const aszfContent = await getAszfContent()
 
