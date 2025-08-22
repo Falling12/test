@@ -34,6 +34,16 @@ interface EmailDialogProps {
         type?: string
         leasingPrice?: string
         rentalPrice?: string
+        rentalStartDateStr?: string
+        rentalEndDateStr?: string
+    }
+    times?: {
+        pickupOptions?: string[]
+        dropoffOptions?: string[]
+        pickupWarnHour?: number | null
+        dropoffWarnHour?: number | null
+        pickupWarnMsg?: string
+        dropoffWarnMsg?: string
     }
 }
 
@@ -46,15 +56,23 @@ const formSchema = z.object({
     }),
     rentalStartDate: z.date().optional(),
     rentalEndDate: z.date().optional(),
-    subscriptionStartDate: z.date().optional()
+    subscriptionStartDate: z.date().optional(),
+    pickupTime: z.string().optional(),
+    dropoffTime: z.string().optional(),
 })
 
 type EmailFormValues = z.infer<typeof formSchema>
 
-export default function EmailDialog({ open, onOpenChange, carInfo }: EmailDialogProps) {
+export default function EmailDialog({ open, onOpenChange, carInfo, times }: EmailDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
     const router = useRouter()
+    const pickupOptions = times?.pickupOptions ?? []
+    const dropoffOptions = times?.dropoffOptions ?? []
+    const pickupWarnHour = times?.pickupWarnHour ?? 12
+    const dropoffWarnHour = times?.dropoffWarnHour ?? 14
+    const pickupWarnMsg = times?.pickupWarnMsg ?? '12:00 vagy az előtti átvétel esetén extra egyeztetés szükséges.'
+    const dropoffWarnMsg = times?.dropoffWarnMsg ?? '14:00 vagy az utáni leadás esetén extra egyeztetés szükséges.'
 
     useEffect(() => {
         const checkScreenSize = () => {
@@ -74,13 +92,17 @@ export default function EmailDialog({ open, onOpenChange, carInfo }: EmailDialog
             email: '',
             name: '',
             phone: '',
-            rentalStartDate: undefined,
-            rentalEndDate: undefined,
-            subscriptionStartDate: undefined
+            rentalStartDate: carInfo.rentalStartDateStr ? new Date(carInfo.rentalStartDateStr) : undefined,
+            rentalEndDate: carInfo.rentalEndDateStr ? new Date(carInfo.rentalEndDateStr) : undefined,
+            subscriptionStartDate: undefined,
+            pickupTime: undefined,
+            dropoffTime: undefined
         }
     })
 
     const subscriptionStartDate = form.watch('subscriptionStartDate')
+    const pickupTime = form.watch('pickupTime')
+    const dropoffTime = form.watch('dropoffTime')
 
     React.useEffect(() => {
         if (carInfo.type === 'is_subscribable' && subscriptionStartDate) {
@@ -112,6 +134,11 @@ export default function EmailDialog({ open, onOpenChange, carInfo }: EmailDialog
                     setIsSubmitting(false)
                     return
                 }
+                if (!values.pickupTime || !values.dropoffTime) {
+                    toast.error('Kérjük, válassza ki az átvételi és leadási időpontot!')
+                    setIsSubmitting(false)
+                    return
+                }
             } else if (reservationType === 'subscription') {
                 if (!values.subscriptionStartDate) {
                     toast.error('Kérjük, válassza ki az előfizetés kezdő dátumát!')
@@ -124,7 +151,9 @@ export default function EmailDialog({ open, onOpenChange, carInfo }: EmailDialog
             if (reservationType === 'rental') {
                 dateData = {
                     rental_period_start: values.rentalStartDate?.toISOString(),
-                    rental_period_end: values.rentalEndDate?.toISOString()
+                    rental_period_end: values.rentalEndDate?.toISOString(),
+                    pickup_time: values.pickupTime,
+                    dropoff_time: values.dropoffTime
                 }
             } else if (reservationType === 'subscription') {
                 const endDate = values.subscriptionStartDate ? addMonths(values.subscriptionStartDate, 1) : undefined
@@ -245,53 +274,113 @@ export default function EmailDialog({ open, onOpenChange, carInfo }: EmailDialog
 
                 {carInfo.type === 'is_rentable' && (
                     <div className="space-y-4">
-                        <div>
-                            <label className="text-sm font-medium mb-2 block">Bérlési időszak</label>
+                        {!(carInfo.rentalStartDateStr && carInfo.rentalEndDateStr) && (
+                            <>
+                                <div>
+                                    <label className="text-sm font-medium mb-2 block">Bérlési időszak</label>
+                                    <FormField
+                                        control={form.control}
+                                        name="rentalStartDate"
+                                        render={({ field, fieldState }) => (
+                                            <FormItem>
+                                                <FormLabel>Kezdő dátum</FormLabel>
+                                                <FormControl>
+                                                    <DatePicker
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                        placeholder="Válassza ki a kezdő dátumot"
+                                                        disabled={(date) => date < new Date()}
+                                                    />
+                                                </FormControl>
+                                                {fieldState.error && (
+                                                    <p className="text-red-500 text-sm mt-1">
+                                                        {fieldState.error.message}
+                                                    </p>
+                                                )}
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <div>
+                                    <FormField
+                                        control={form.control}
+                                        name="rentalEndDate"
+                                        render={({ field, fieldState }) => (
+                                            <FormItem>
+                                                <FormLabel>Befejező dátum</FormLabel>
+                                                <FormControl>
+                                                    <DatePicker
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                        placeholder="Válassza ki a befejező dátumot"
+                                                        disabled={(date) => {
+                                                            const startDate = form.getValues('rentalStartDate')
+                                                            return date < new Date() || (startDate ? date <= startDate : false)
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                                {fieldState.error && (
+                                                    <p className="text-red-500 text-sm mt-1">
+                                                        {fieldState.error.message}
+                                                    </p>
+                                                )}
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
-                                name="rentalStartDate"
-                                render={({ field, fieldState }) => (
+                                name="pickupTime"
+                                render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Kezdő dátum</FormLabel>
+                                        <FormLabel>Átvételi idő</FormLabel>
                                         <FormControl>
-                                            <DatePicker
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                placeholder="Válassza ki a kezdő dátumot"
-                                                disabled={(date) => date < new Date()}
-                                            />
+                                            <select
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                value={field.value || ''}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                            >
+                                                <option value="">Válasszon</option>
+                                                {pickupOptions.map((t) => (
+                                                    <option key={t} value={t}>{t}</option>
+                                                ))}
+                                            </select>
                                         </FormControl>
-                                        {fieldState.error && (
-                                            <p className="text-red-500 text-sm mt-1">
-                                                {fieldState.error.message}
-                                            </p>
+                                        {pickupTime && pickupWarnHour !== null && parseInt(pickupTime.split(':')[0], 10) <= pickupWarnHour && (
+                                            <div className="mt-2 p-2 bg-yellow-100 rounded text-sm text-[#575757]">
+                                                {pickupWarnMsg}
+                                            </div>
                                         )}
                                     </FormItem>
                                 )}
                             />
-                        </div>
-                        <div>
+
                             <FormField
                                 control={form.control}
-                                name="rentalEndDate"
-                                render={({ field, fieldState }) => (
+                                name="dropoffTime"
+                                render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Befejező dátum</FormLabel>
+                                        <FormLabel>Leadási idő</FormLabel>
                                         <FormControl>
-                                            <DatePicker
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                placeholder="Válassza ki a befejező dátumot"
-                                                disabled={(date) => {
-                                                    const startDate = form.getValues('rentalStartDate')
-                                                    return date < new Date() || (startDate ? date <= startDate : false)
-                                                }}
-                                            />
+                                            <select
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                value={field.value || ''}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                            >
+                                                <option value="">Válasszon</option>
+                                                {dropoffOptions.map((t) => (
+                                                    <option key={t} value={t}>{t}</option>
+                                                ))}
+                                            </select>
                                         </FormControl>
-                                        {fieldState.error && (
-                                            <p className="text-red-500 text-sm mt-1">
-                                                {fieldState.error.message}
-                                            </p>
+                                        {dropoffTime && dropoffWarnHour !== null && parseInt(dropoffTime.split(':')[0], 10) >= dropoffWarnHour && (
+                                            <div className="mt-2 p-2 bg-yellow-100 rounded text-sm text-[#575757]">
+                                                {dropoffWarnMsg}
+                                            </div>
                                         )}
                                     </FormItem>
                                 )}

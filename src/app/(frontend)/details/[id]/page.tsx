@@ -53,6 +53,30 @@ const getSubscriptionsFAQ = async (): Promise<SubscriptionsFaq | null> => {
     }
 }
 
+const getPickupDropoffTimes = async () => {
+    try {
+        const payload = await getPayload({ config: payloadConfig })
+        const cfg = await payload.findGlobal({ slug: 'pickup-dropoff-times' }) as any
+        return {
+            pickupOptions: Array.isArray(cfg?.pickup_times) ? cfg.pickup_times.map((t: any) => t.time).filter(Boolean) : [],
+            dropoffOptions: Array.isArray(cfg?.dropoff_times) ? cfg.dropoff_times.map((t: any) => t.time).filter(Boolean) : [],
+            pickupWarnHour: parseInt(cfg?.pickup_warning_before_or_at || '12', 10),
+            dropoffWarnHour: parseInt(cfg?.dropoff_warning_after_or_at || '14', 10),
+            pickupWarnMsg: cfg?.pickup_warning_message || undefined,
+            dropoffWarnMsg: cfg?.dropoff_warning_message || undefined,
+        }
+    } catch {
+        return {
+            pickupOptions: [],
+            dropoffOptions: [],
+            pickupWarnHour: 12,
+            dropoffWarnHour: 14,
+            pickupWarnMsg: undefined,
+            dropoffWarnMsg: undefined,
+        }
+    }
+}
+
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> => {
     const { id } = await params
     const car = await getCar(id)
@@ -101,6 +125,7 @@ export default async function CarDetailsPage({
 
     const car = await getCar(id)
     const faqData = await getSubscriptionsFAQ()
+    const timeConfig = await getPickupDropoffTimes()
 
     if (!car) {
         return notFound()
@@ -274,7 +299,7 @@ export default async function CarDetailsPage({
                                     Előfizetési opciók
                                 </h3>
 
-                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} faqData={faqData || undefined} />
+                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} faqData={faqData || undefined} times={timeConfig} />
 
                                 <div className='flex items-center justify-center p-3 bg-yellow-100 rounded-md gap-2'>
                                     <p className='text-sm text-[#575757]'>
@@ -292,7 +317,7 @@ export default async function CarDetailsPage({
                     {
                         type === 'is_rentable' && (
                             <div className='hidden'>
-                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} faqData={faqData || undefined} />
+                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} faqData={faqData || undefined} times={timeConfig} />
                             </div>
                         )
                     }
@@ -300,7 +325,7 @@ export default async function CarDetailsPage({
                     {
                         type === 'is_leasable' && (
                             <div className='hidden'>
-                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} faqData={faqData || undefined} />
+                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} faqData={faqData || undefined} times={timeConfig} />
                             </div>
                         )
                     }
@@ -334,7 +359,7 @@ export default async function CarDetailsPage({
             <div className='w-full flex flex-col gap-1.5 py-6 max-[768px]:px-[3%] max-[768px]:pb-16 max-[768px]:pt-2'>
                 <h3 className='font-medium text-sm'>Termék előnyei</h3>
 
-                <BenefitList />
+                <BenefitList car={car} type={type as any} />
             </div>
         </div >
     )

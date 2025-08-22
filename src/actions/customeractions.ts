@@ -20,6 +20,8 @@ export const createReservation = async (reservation: Reservation) => {
                 subscription_type: reservation.subscription_type,
                 rental_period_start: reservation.rental_period_start,
                 rental_period_end: reservation.rental_period_end,
+                pickup_time: (reservation as any).pickup_time,
+                dropoff_time: (reservation as any).dropoff_time,
                 subscription_period_start: reservation.subscription_period_start,
                 subscription_period_end: reservation.subscription_period_end
             }

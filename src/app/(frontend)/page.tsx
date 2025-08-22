@@ -17,7 +17,7 @@ type CarsResponse = {
   prevPage?: number | null
 }
 
-const PAGE_SIZE = 9
+const PAGE_SIZE = 5
 
 const fetchCars = async (page: number, filter?: string): Promise<CarsResponse> => {
   try {
@@ -117,7 +117,7 @@ function CarsGridSkeleton() {
 }
 
 // Component that fetches and displays cars
-async function CarsContent({ currentPage, filter }: { currentPage: number, filter?: string }) {
+async function CarsContent({ currentPage, filter, startDate, endDate }: { currentPage: number, filter?: string, startDate?: string, endDate?: string }) {
   const carsRes = await fetchCars(currentPage, filter)
   const pages = getPaginationRange(carsRes.page, carsRes.totalPages)
 
@@ -127,12 +127,14 @@ async function CarsContent({ currentPage, filter }: { currentPage: number, filte
     params.set('page', page.toString())
     // Always include filter, default to is_rentable if not provided
     params.set('filter', filter || 'is_rentable')
+    if (startDate) params.set('startDate', startDate)
+    if (endDate) params.set('endDate', endDate)
     return `/?${params.toString()}`
   }
 
   return (
     <>
-      <ListingGrid cars={carsRes.docs} filter={filter || 'is_rentable'} />
+      <ListingGrid cars={carsRes.docs} filter={filter || 'is_rentable'} startDate={startDate} endDate={endDate} />
 
       {carsRes.totalPages > 1 && (
         <Pagination className="mt-2">
@@ -167,10 +169,24 @@ async function CarsContent({ currentPage, filter }: { currentPage: number, filte
   )
 }
 
-export default async function HomePage({ searchParams }: { searchParams?: Promise<{ page?: string, filter?: string }> }) {
-  const { page: pageParam, filter } = await searchParams ?? {}
+export default async function HomePage({ searchParams }: { searchParams?: Promise<{ page?: string, filter?: string, startDate?: string, endDate?: string }> }) {
+  const { page: pageParam, filter, startDate, endDate } = await searchParams ?? {}
   const currentPage = Math.max(1, Number(pageParam) || 1)
   const defaultFilter = filter || 'is_rentable'
+
+  // Defaults for rental date range (today..tomorrow) if renting and no dates provided
+  let startDateParam = startDate
+  let endDateParam = endDate
+  if (defaultFilter === 'is_rentable') {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(today.getDate() + 1)
+    if (!startDateParam) startDateParam = today.toISOString().split('T')[0]
+    if (!endDateParam) endDateParam = tomorrow.toISOString().split('T')[0]
+  }
+
+  const payload = await getPayload({ config: payloadConfig })
+  const about = await payload.findGlobal({ slug: 'about' }).catch(() => null)
 
   return (
     <div className="flex flex-col gap-5 px-[15%] py-5 max-[1400px]:px-[10%] max-[900px]:px-[3%]">
@@ -180,9 +196,16 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
       <Filters />
 
-      <Suspense key={`${currentPage}-${defaultFilter}`} fallback={<CarsGridSkeleton />}>
-        <CarsContent currentPage={currentPage} filter={defaultFilter} />
+      <Suspense key={`${currentPage}-${defaultFilter}-${startDateParam}-${endDateParam}`} fallback={<CarsGridSkeleton />}>
+        <CarsContent currentPage={currentPage} filter={defaultFilter} startDate={startDateParam} endDate={endDateParam} />
       </Suspense>
+
+      {about?.content && (
+        <div className="mt-6 p-4 rounded-md bg-card">
+          <h2 className="text-lg font-semibold mb-2">Rólunk</h2>
+          <p className="text-sm whitespace-pre-line">{about.content}</p>
+        </div>
+      )}
     </div>
   )
 }
