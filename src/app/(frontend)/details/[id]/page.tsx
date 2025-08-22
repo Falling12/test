@@ -40,6 +40,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     const { id } = await params
     const car = await getCar(id)
     return {
+        metadataBase: new URL(process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000'),
         title: `Leasetown - ${car?.car_details.manufacturer} ${car?.car_details.model}`,
         description: car?.car_details.additional_info,
         openGraph: {
