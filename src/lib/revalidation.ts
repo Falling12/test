@@ -51,7 +51,7 @@ export async function revalidate(options: RevalidationOptions): Promise<{
             throw new Error('REVALIDATION_SECRET is required')
         }
 
-        const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000'
+        const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
         const url = `${baseUrl}/api/revalidate?secret=${encodeURIComponent(secret)}`
 
         const response = await fetch(url, {
