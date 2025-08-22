@@ -12,11 +12,48 @@ interface CarCardProps {
 }
 
 export default async function CarCard({ car, filter }: CarCardProps) {
-    // Build href with filter parameter if provided
     const href = filter ? `/details/${car.id}?type=${filter}` : `/details/${car.id}`
 
+    const getPriceDisplay = () => {
+        switch (filter) {
+            case 'is_rentable':
+                const rentalPrice = car.packages_prices?.renting?.renting_price_per_month
+                if (rentalPrice) {
+                    return {
+                        price: rentalPrice,
+                        label: '',
+                        suffix: '-tól'
+                    }
+                }
+                break
+            case 'is_leasable':
+                const leasePrice = car.packages_prices?.lease?.lease_price_per_month
+                return {
+                    price: leasePrice,
+                    label: '',
+                    suffix: '-tól'
+                }
+
+            case 'is_subscribable':
+            default:
+                const subscriptionPrice = car.packages_prices?.subscription?.subscription_price_per_year ?? 0
+                return {
+                    price: subscriptionPrice.toLocaleString('hu-HU', { style: 'currency', currency: 'HUF', minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+                    label: 'Havi',
+                    suffix: '-tól'
+                }
+        }
+        return {
+            price: 0,
+            label: 'Havi',
+            suffix: '-tól'
+        }
+    }
+
+    const { price, label, suffix } = getPriceDisplay()
+
     return (
-        <Link href={href} className="relative w-full aspect-[378/339] group hover:translate-y-[-5px] transition-all duration-300">
+        <Link href={href} className="relative w-full aspect-[378/339] group hover:translate-y-[-5px] transition-all duration-300" scroll={true}>
             <Image
                 src={await getImageUrl(car.preview?.image)}
                 alt={getImageAlt(car.preview?.image)}
@@ -41,7 +78,7 @@ export default async function CarCard({ car, filter }: CarCardProps) {
                         {car.car_details.gearbox && <DetailChip label={`${getTransmissionType(car.car_details.gearbox)}`} variant='light' />}
                     </div>
 
-                    <p className='text-white text-xl font-bold'>Havi {new Intl.NumberFormat('hu-HU', { style: 'currency', currency: 'HUF', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(car.packages_prices?.subscription?.subscription_price_per_year ?? 0)} -tól</p>
+                    <p className='text-white text-xl font-bold'>{label} {price} {suffix}</p>
                 </div>
             </div>
 

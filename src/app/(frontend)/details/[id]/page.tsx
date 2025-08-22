@@ -66,7 +66,21 @@ export default async function CarDetailsPage({
                     type === 'is_rentable' && (
                         <>
                             <p className='font-bold text-xl text-right'>
-                                {car.packages_prices?.renting?.renting_price_per_month?.toLocaleString('hu-HU', { style: 'currency', currency: 'HUF', maximumFractionDigits: 0, minimumFractionDigits: 0 })} / hó
+                                {car.packages_prices?.renting?.renting_price_per_month}
+                            </p>
+
+                            <Button variant='default' className='' form="subscription-form" type="submit">
+                                Szeretném ezt az autót
+                            </Button>
+                        </>
+                    )
+                }
+
+                {
+                    type === 'is_leasable' && (
+                        <>
+                            <p className='font-bold text-xl text-right'>
+                                {car.packages_prices?.lease?.lease_price_per_month}
                             </p>
 
                             <Button variant='default' className='' form="subscription-form" type="submit">
@@ -99,7 +113,7 @@ export default async function CarDetailsPage({
                     type === 'is_rentable' && (
                         <div className='flex flex-col gap-2'>
                             <p className='font-bold text-xl text-right'>
-                                {car.packages_prices?.renting?.renting_price_per_month?.toLocaleString('hu-HU', { style: 'currency', currency: 'HUF', maximumFractionDigits: 0, minimumFractionDigits: 0 })} / hó
+                                {car.packages_prices?.renting?.renting_price_per_month}
                             </p>
 
                             <Button variant='default' className='w-fit' form="subscription-form" type="submit">
@@ -116,18 +130,45 @@ export default async function CarDetailsPage({
                         </Button>
                     )
                 }
+
+                {
+                    type === 'is_leasable' && (
+                        <div className='flex flex-col gap-2'>
+                            <p className='font-bold text-xl text-right'>
+                                {car.packages_prices?.lease?.lease_price_per_month}
+                            </p>
+
+                            <Button variant='default' className='w-fit' form="subscription-form" type="submit">
+                                Szeretném ezt az autót
+                            </Button>
+                        </div>
+                    )
+                }
             </div>
 
             <div className='flex flex-row items-start justify-between gap-4 max-[768px]:flex-col'>
                 <div className='hidden max-[768px]:flex flex-col w-full'>
-                    <Image
-                        src={await getImageUrl(car.preview?.image)}
-                        alt={getImageAlt(car.preview?.image)}
-                        width={550}
-                        height={490}
-                        priority
-                        className='max-w-[40%] w-full h-fit object-contain rounded-lg sticky top-44 z-10 max-[768px]:max-w-full max-[768px]:static max-[768px]:rounded-none max-[768px]:w-full max-[768px]:max-h-[400px] max-[768px]:object-cover'
-                    />
+                    <div className='relative w-full'>
+                        <Image
+                            src={await getImageUrl(car.preview?.image)}
+                            alt={getImageAlt(car.preview?.image)}
+                            width={550}
+                            height={490}
+                            priority
+                            className='max-w-[40%] w-full h-fit object-contain rounded-lg  max-[768px]:max-w-full max-[768px]:static max-[768px]:rounded-none max-[768px]:w-full max-[768px]:max-h-[400px] max-[768px]:object-cover'
+                        />
+
+                        <div className='absolute bottom-0 w-full h-28 flex flex-col justify-between rounded-lg overflow-hidden z-[5]' style={{
+                            backgroundImage: 'linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%)'
+                        }}>
+                            <div className='border rounded-full py-1 px-2 border-white/30 flex items-center justify-center w-fit mt-auto mb-6 ml-3'>
+                                <p className='text-white text-sm font-medium'>
+                                    Átvehető: {new Date(car.car_details.handover?.handover_date ?? '').toLocaleDateString('hu-HU', { day: '2-digit', month: '2-digit', year: 'numeric' })}-tól
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
 
                     <div className='hidden max-[768px]:flex flex-col px-3 py-2'>
                         <h1 className='font-semibold text-xl'>
@@ -147,19 +188,31 @@ export default async function CarDetailsPage({
                     </div>
                 </div>
 
-                <Image
-                    src={await getImageUrl(car.preview?.image)}
-                    alt={getImageAlt(car.preview?.image)}
-                    width={550}
-                    height={490}
-                    priority
-                    className='max-w-[40%] w-full h-fit object-contain rounded-lg sticky top-44 z-[5] max-[768px]:hidden'
-                />
+                <div className='max-w-[40%] w-full max-[768px]:hidden sticky top-44 z-[5]'>
+                    <Image
+                        src={await getImageUrl(car.preview?.image)}
+                        alt={getImageAlt(car.preview?.image)}
+                        width={550}
+                        height={490}
+                        priority
+                        className='w-full h-fit object-contain rounded-lg'
+                    />
 
-                <div className='flex flex-col gap-4 max-w-[60%] w-full max-[768px]:max-w-full max-[768px]:px-[3%]'>
+                    <div className='absolute bottom-0 w-full h-28 flex flex-col justify-between rounded-lg overflow-hidden z-[5]' style={{
+                        backgroundImage: 'linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%)'
+                    }}>
+                        <div className='border rounded-full py-1 px-2 border-white/30 flex items-center justify-center w-fit mt-auto mb-6 ml-3'>
+                            <p className='text-white text-sm font-medium'>
+                                Átvehető: {new Date(car.car_details.handover?.handover_date ?? '').toLocaleDateString('hu-HU', { day: '2-digit', month: '2-digit', year: 'numeric' })}-tól
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className='flex flex-col gap-6 max-w-[60%] w-full max-[768px]:max-w-full max-[768px]:px-[3%]'>
                     {
                         type === 'is_subscribable' && (
-                            <div className='flex flex-col gap-1.5'>
+                            <div className='flex flex-col gap-2'>
                                 <h3 className='font-medium text-sm'>
                                     Előfizetési opciók
                                 </h3>
@@ -171,6 +224,10 @@ export default async function CarDetailsPage({
                                         Előfizetés esetén válassz új autót havonta, elérhető modelljeink közül, változó igényeid szerint. Minden autó maximum egy hónapig használható, hogy számodra megfelelő kínálattal szolgálhassunk minden alkalommal.
                                     </p>
                                 </div>
+
+                                <Button variant='default' className='w-full' form="subscription-form" type="submit">
+                                    Szeretném ezt az autót
+                                </Button>
                             </div>
                         )
                     }
@@ -183,8 +240,16 @@ export default async function CarDetailsPage({
                         )
                     }
 
+                    {
+                        type === 'is_leasable' && (
+                            <div className='hidden'>
+                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} />
+                            </div>
+                        )
+                    }
 
-                    <div className='flex flex-col gap-1.5'>
+
+                    <div className='flex flex-col gap-2'>
                         <h3 className='font-medium text-sm'>
                             Gépjármű adatai
                         </h3>

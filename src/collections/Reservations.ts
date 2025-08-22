@@ -77,21 +77,39 @@ export const Reservations: CollectionConfig = {
             }
         },
         {
-            name: 'leasing_price',
-            label: 'Lízing díj',
-            type: 'number',
-            required: false,
-            admin: {
-                condition: (data) => data.type === 'leasing',
-            }
-        },
-        {
-            name: 'rental_price',
-            label: 'Bérlési díj',
-            type: 'number',
+            name: 'rental_period_start',
+            label: 'Bérlési időszak kezdete',
+            type: 'date',
             required: false,
             admin: {
                 condition: (data) => data.type === 'rental',
+            }
+        },
+        {
+            name: 'rental_period_end',
+            label: 'Bérlési időszak vége',
+            type: 'date',
+            required: false,
+            admin: {
+                condition: (data) => data.type === 'rental',
+            }
+        },
+        {
+            name: 'subscription_period_start',
+            label: 'Előfizetési időszak kezdete',
+            type: 'date',
+            required: false,
+            admin: {
+                condition: (data) => data.type === 'subscription',
+            }
+        },
+        {
+            name: 'subscription_period_end',
+            label: 'Előfizetési időszak vége',
+            type: 'date',
+            required: false,
+            admin: {
+                condition: (data) => data.type === 'subscription',
             }
         }
     ],

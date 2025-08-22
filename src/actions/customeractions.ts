@@ -18,8 +18,10 @@ export const createReservation = async (reservation: Reservation) => {
                 car: reservation.car,
                 type: reservation.type,
                 subscription_type: reservation.subscription_type,
-                leasing_price: reservation.leasing_price,
-                rental_price: reservation.rental_price
+                rental_period_start: reservation.rental_period_start,
+                rental_period_end: reservation.rental_period_end,
+                subscription_period_start: reservation.subscription_period_start,
+                subscription_period_end: reservation.subscription_period_end
             }
         })
 

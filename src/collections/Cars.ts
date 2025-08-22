@@ -275,6 +275,24 @@ export const Cars: CollectionConfig = {
                         },
                         {
                             type: 'group',
+                            name: 'handover',
+                            label: 'Átvételi adatok',
+                            fields: [
+                                {
+                                    type: 'date',
+                                    name: 'handover_date',
+                                    label: 'Átvételi dátum',
+                                    required: false,
+                                    admin: {
+                                        date: {
+                                            minDate: new Date(),
+                                        }
+                                    }
+                                },
+                            ]
+                        },
+                        {
+                            type: 'group',
                             name: 'promotion',
                             label: 'Promóciós adatok',
                             fields: [
@@ -323,7 +341,7 @@ export const Cars: CollectionConfig = {
                                 {
                                     name: 'renting_price_per_month',
                                     label: 'Havidíj',
-                                    type: 'number',
+                                    type: 'text',
                                     required: false,
                                 }
                             ],
@@ -376,7 +394,7 @@ export const Cars: CollectionConfig = {
                                     required: false,
                                 },
                                 {
-                                    type: 'number',
+                                    type: 'text',
                                     name: 'lease_price_per_month',
                                     label: 'Havi díj',
                                     required: false,

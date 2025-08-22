@@ -11,6 +11,7 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Cars } from './collections/Cars'
 import { Reservations } from './collections/Reservations'
+import { ASZF } from './collections/ASZF'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -23,6 +24,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Cars, Reservations],
+  globals: [ASZF],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

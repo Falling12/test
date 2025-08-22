@@ -12,6 +12,10 @@ import { createReservation } from '@/actions/customeractions'
 import { toast } from 'sonner'
 import { Reservation } from '@/payload-types'
 import * as z from 'zod'
+import { Checkbox } from '@/components/ui/checkbox'
+import { DatePicker } from '@/components/ui/date-picker'
+import { addMonths } from 'date-fns'
+import Link from 'next/link'
 
 interface EmailDialogProps {
     open: boolean
@@ -28,15 +32,21 @@ interface EmailDialogProps {
         fuelType?: string
         gearbox?: string
         type?: string
-        leasingPrice?: number
-        rentalPrice?: number
+        leasingPrice?: string
+        rentalPrice?: string
     }
 }
 
 const formSchema = z.object({
     email: z.string().min(1, "E-mail cím kötelező").email("Érvényes e-mail címet adjon meg"),
     name: z.string().min(2, "Név kötelező (minimum 2 karakter)"),
-    phone: z.string().min(1, "Telefonszám kötelező").regex(/^[+]?[0-9\s\-\(\)]+$/, "Érvényes telefonszámot adjon meg")
+    phone: z.string().min(1, "Telefonszám kötelező").regex(/^[+]?[0-9\s\-\(\)]+$/, "Érvényes telefonszámot adjon meg"),
+    acceptTermsAndConditions: z.boolean().refine((val) => val, {
+        message: "Kérjük, fogadja el a feltételeket!"
+    }),
+    rentalStartDate: z.date().optional(),
+    rentalEndDate: z.date().optional(),
+    subscriptionStartDate: z.date().optional()
 })
 
 type EmailFormValues = z.infer<typeof formSchema>
@@ -63,15 +73,66 @@ export default function EmailDialog({ open, onOpenChange, carInfo }: EmailDialog
         defaultValues: {
             email: '',
             name: '',
-            phone: ''
+            phone: '',
+            rentalStartDate: undefined,
+            rentalEndDate: undefined,
+            subscriptionStartDate: undefined
         }
     })
+
+    const subscriptionStartDate = form.watch('subscriptionStartDate')
+
+    React.useEffect(() => {
+        if (carInfo.type === 'is_subscribable' && subscriptionStartDate) {
+            addMonths(subscriptionStartDate, 1)
+        }
+    }, [subscriptionStartDate, carInfo.type])
 
     const handleSubmit = async (values: EmailFormValues) => {
         setIsSubmitting(true)
         console.log(carInfo)
         try {
-            const reservationType = carInfo.type === 'is_rentable' ? 'rental' : 'subscription'
+            let reservationType: 'rental' | 'leasing' | 'subscription'
+            if (carInfo.type === 'is_rentable') {
+                reservationType = 'rental'
+            } else if (carInfo.type === 'is_leasable') {
+                reservationType = 'leasing'
+            } else {
+                reservationType = 'subscription'
+            }
+
+            if (reservationType === 'rental') {
+                if (!values.rentalStartDate || !values.rentalEndDate) {
+                    toast.error('Kérjük, válassza ki a bérlési időszakot!')
+                    setIsSubmitting(false)
+                    return
+                }
+                if (values.rentalEndDate <= values.rentalStartDate) {
+                    toast.error('A befejező dátum későbbi kell legyen, mint a kezdő dátum!')
+                    setIsSubmitting(false)
+                    return
+                }
+            } else if (reservationType === 'subscription') {
+                if (!values.subscriptionStartDate) {
+                    toast.error('Kérjük, válassza ki az előfizetés kezdő dátumát!')
+                    setIsSubmitting(false)
+                    return
+                }
+            }
+
+            let dateData = {}
+            if (reservationType === 'rental') {
+                dateData = {
+                    rental_period_start: values.rentalStartDate?.toISOString(),
+                    rental_period_end: values.rentalEndDate?.toISOString()
+                }
+            } else if (reservationType === 'subscription') {
+                const endDate = values.subscriptionStartDate ? addMonths(values.subscriptionStartDate, 1) : undefined
+                dateData = {
+                    subscription_period_start: values.subscriptionStartDate?.toISOString(),
+                    subscription_period_end: endDate?.toISOString()
+                }
+            }
 
             const result = await createReservation({
                 car: parseInt(carInfo.id),
@@ -80,8 +141,7 @@ export default function EmailDialog({ open, onOpenChange, carInfo }: EmailDialog
                 phone: values.phone,
                 subscription_type: carInfo.subscriptionPlan,
                 type: reservationType,
-                leasing_price: carInfo.leasingPrice,
-                rental_price: carInfo.rentalPrice
+                ...dateData
             } as Reservation)
 
             if (result.success) {
@@ -183,6 +243,121 @@ export default function EmailDialog({ open, onOpenChange, carInfo }: EmailDialog
                     )}
                 />
 
+                {carInfo.type === 'is_rentable' && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-sm font-medium mb-2 block">Bérlési időszak</label>
+                            <FormField
+                                control={form.control}
+                                name="rentalStartDate"
+                                render={({ field, fieldState }) => (
+                                    <FormItem>
+                                        <FormLabel>Kezdő dátum</FormLabel>
+                                        <FormControl>
+                                            <DatePicker
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="Válassza ki a kezdő dátumot"
+                                                disabled={(date) => date < new Date()}
+                                            />
+                                        </FormControl>
+                                        {fieldState.error && (
+                                            <p className="text-red-500 text-sm mt-1">
+                                                {fieldState.error.message}
+                                            </p>
+                                        )}
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div>
+                            <FormField
+                                control={form.control}
+                                name="rentalEndDate"
+                                render={({ field, fieldState }) => (
+                                    <FormItem>
+                                        <FormLabel>Befejező dátum</FormLabel>
+                                        <FormControl>
+                                            <DatePicker
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="Válassza ki a befejező dátumot"
+                                                disabled={(date) => {
+                                                    const startDate = form.getValues('rentalStartDate')
+                                                    return date < new Date() || (startDate ? date <= startDate : false)
+                                                }}
+                                            />
+                                        </FormControl>
+                                        {fieldState.error && (
+                                            <p className="text-red-500 text-sm mt-1">
+                                                {fieldState.error.message}
+                                            </p>
+                                        )}
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {carInfo.subscriptionPlan && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-sm font-medium mb-2 block">Előfizetési időszak</label>
+                            <FormField
+                                control={form.control}
+                                name="subscriptionStartDate"
+                                render={({ field, fieldState }) => (
+                                    <FormItem>
+                                        <FormLabel>Kezdő dátum</FormLabel>
+                                        <FormControl>
+                                            <DatePicker
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="Válassza ki a kezdő dátumot"
+                                                disabled={(date) => date < new Date()}
+                                            />
+                                        </FormControl>
+                                        {fieldState.error && (
+                                            <p className="text-red-500 text-sm mt-1">
+                                                {fieldState.error.message}
+                                            </p>
+                                        )}
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                            Minimum időszak: 1 hónap
+                                            {field.value && (
+                                                <span className="block">
+                                                    Befejező dátum: {addMonths(field.value, 1).toLocaleDateString('hu-HU', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    })}
+                                                </span>
+                                            )}
+                                        </p>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                <FormField
+                    control={form.control}
+                    name="acceptTermsAndConditions"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>
+                                <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                                <p>Elfogadom az <Link href="/aszf" className='text-blue-500 underline'>Adatkezelési tájékoztató</Link> feltételeit</p>
+                            </FormLabel>
+                        </FormItem>
+                    )}
+                />
+
                 <div className="flex gap-2 pt-4">
                     <Button
                         type="button"
@@ -197,7 +372,7 @@ export default function EmailDialog({ open, onOpenChange, carInfo }: EmailDialog
                         disabled={isSubmitting}
                         className="flex-1"
                     >
-                        {isSubmitting ? '...' : 'Tovább'}
+                        {isSubmitting ? 'Foglalás folyamatban...' : 'Foglalás'}
                     </Button>
                 </div>
             </form>

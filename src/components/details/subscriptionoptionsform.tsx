@@ -44,7 +44,7 @@ interface SubscriptionOptionsFormProps {
 export default function SubscriptionOptionsForm({ car, imageUrl, type }: SubscriptionOptionsFormProps) {
     const subscription = car.packages_prices?.subscription
     const options = getAvailableOptions(subscription)
-    const defaultPlan = options[0]
+    const defaultPlan = options[2]
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedPlan, setSelectedPlan] = useState<SubscriptionType>(defaultPlan)
@@ -58,10 +58,42 @@ export default function SubscriptionOptionsForm({ car, imageUrl, type }: Subscri
     const handleSubmit = (values: FormValues) => {
         if (type === 'is_rentable') {
             setSelectedPlan('quarterly')
+        } else if (type === 'is_leasable') {
+            // For leasing, we don't need a subscription plan
+            setSelectedPlan('quarterly') // Default value, won't be used
         } else {
             setSelectedPlan(values.subscription)
         }
         setIsDialogOpen(true)
+    }
+
+    if (type === 'is_leasable') {
+        // For leasing, we don't show subscription options, just handle the form
+        return (
+            <Form {...form}>
+                <form id="subscription-form" onSubmit={form.handleSubmit(handleSubmit)} className='flex flex-col gap-3'>
+                    <EmailDialog
+                        open={isDialogOpen}
+                        onOpenChange={setIsDialogOpen}
+                        carInfo={{
+                            id: car.id.toString(),
+                            manufacturer: car.car_details.manufacturer,
+                            model: car.car_details.model,
+                            subscriptionPlan: undefined, // No subscription for leasing
+                            additionalInfo: car.car_details.additional_info || undefined,
+                            imageUrl: encodeURIComponent(imageUrl),
+                            year: car.car_details.year?.toString(),
+                            kilometers: car.car_details.kilometers?.toString(),
+                            fuelType: car.car_details.fuel_type,
+                            gearbox: car.car_details.gearbox,
+                            type: type,
+                            leasingPrice: car.packages_prices?.lease?.lease_price_per_month ?? undefined,
+                            rentalPrice: car.packages_prices?.renting?.renting_price_per_month ?? undefined
+                        }}
+                    />
+                </form>
+            </Form>
+        )
     }
 
     if (type !== 'is_rentable' && (!subscription || options.length === 0)) {

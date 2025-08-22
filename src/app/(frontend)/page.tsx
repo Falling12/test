@@ -174,9 +174,9 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
 
   return (
     <div className="flex flex-col gap-8 px-[15%] py-8 max-[1400px]:px-[10%] max-[900px]:px-[3%]">
-      <h1 className="font-semibold text-3xl">
+      {/* <h1 className="font-semibold text-3xl">
         Elérhető autóink
-      </h1>
+      </h1> */}
 
       <Filters />
 

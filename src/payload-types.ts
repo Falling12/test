@@ -88,8 +88,12 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    aszf: Aszf;
+  };
+  globalsSelect: {
+    aszf: AszfSelect<false> | AszfSelect<true>;
+  };
   locale: null;
   user: User & {
     collection: 'users';
@@ -184,6 +188,9 @@ export interface Car {
     exterior_color: 'white' | 'black' | 'red' | 'blue' | 'green';
     interior_color: 'white' | 'black' | 'red' | 'blue' | 'green';
     interior_material: 'alcantara' | 'leather';
+    handover?: {
+      handover_date?: string | null;
+    };
     promotion?: {
       /**
        * A listázott nézetben a gépjármű kártyáján megjelenő sárga sávos szöveg.
@@ -195,7 +202,7 @@ export interface Car {
   packages_prices?: {
     renting?: {
       is_rentable?: boolean | null;
-      renting_price_per_month?: number | null;
+      renting_price_per_month?: string | null;
     };
     subscription?: {
       is_subscribable?: boolean | null;
@@ -205,7 +212,7 @@ export interface Car {
     };
     lease?: {
       is_leasable?: boolean | null;
-      lease_price_per_month?: number | null;
+      lease_price_per_month?: string | null;
     };
     car_category?: {
       excepted_mileage?: ('high' | 'low' | 'medium') | null;
@@ -230,8 +237,10 @@ export interface Reservation {
   car: number | Car;
   type: 'rental' | 'leasing' | 'subscription';
   subscription_type?: ('quarterly' | 'halfyearly' | 'yearly') | null;
-  leasing_price?: number | null;
-  rental_price?: number | null;
+  rental_period_start?: string | null;
+  rental_period_end?: string | null;
+  subscription_period_start?: string | null;
+  subscription_period_end?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -363,6 +372,11 @@ export interface CarsSelect<T extends boolean = true> {
         exterior_color?: T;
         interior_color?: T;
         interior_material?: T;
+        handover?:
+          | T
+          | {
+              handover_date?: T;
+            };
         promotion?:
           | T
           | {
@@ -419,8 +433,10 @@ export interface ReservationsSelect<T extends boolean = true> {
   car?: T;
   type?: T;
   subscription_type?: T;
-  leasing_price?: T;
-  rental_price?: T;
+  rental_period_start?: T;
+  rental_period_end?: T;
+  subscription_period_start?: T;
+  subscription_period_end?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -455,6 +471,40 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "aszf".
+ */
+export interface Aszf {
+  id: number;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "aszf_select".
+ */
+export interface AszfSelect<T extends boolean = true> {
+  content?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

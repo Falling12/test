@@ -81,9 +81,9 @@ export default function SubscriptionDetailCard({ type, value, isSelected, ...pri
             </DrawerTrigger>
             <DrawerContent className="max-h-[80vh]">
                 <DrawerHeader className="text-left">
-                    <DrawerTitle>Előfizetés részletei</DrawerTitle>
+                    <DrawerTitle className='text-xl font-semibold text-left'>Előfizetés részletei</DrawerTitle>
                     <DrawerDescription asChild>
-                        <div className="px-4 pb-4">
+                        <div className="py-4">
                             {contentDetails}
                         </div>
                     </DrawerDescription>
