@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'
 import { RadioGroup } from '@/components/ui/radio-group'
 import SubscriptionDetailCard from '@/components/details/subscriptiondetailcard'
-import { Car } from '@/payload-types'
+import { Car, SubscriptionsFaq } from '@/payload-types'
 import EmailDialog from './emaildialog'
 
 const SUBSCRIPTION_TYPES = {
@@ -39,9 +39,10 @@ interface SubscriptionOptionsFormProps {
     car: Car
     imageUrl: string
     type?: string
+    faqData?: SubscriptionsFaq
 }
 
-export default function SubscriptionOptionsForm({ car, imageUrl, type }: SubscriptionOptionsFormProps) {
+export default function SubscriptionOptionsForm({ car, imageUrl, type, faqData }: SubscriptionOptionsFormProps) {
     const subscription = car.packages_prices?.subscription
     const options = getAvailableOptions(subscription)
     const defaultPlan = options[2]
@@ -124,6 +125,7 @@ export default function SubscriptionOptionsForm({ car, imageUrl, type }: Subscri
                                             price_per_quarter={getSubscriptionPrice(subscription, SUBSCRIPTION_TYPES.QUARTERLY)}
                                             price_per_halfyear={getSubscriptionPrice(subscription, SUBSCRIPTION_TYPES.HALFYEARLY)}
                                             price_per_year={getSubscriptionPrice(subscription, SUBSCRIPTION_TYPES.YEARLY)}
+                                            faqData={faqData}
                                         />
                                     ))}
                                 </RadioGroup>

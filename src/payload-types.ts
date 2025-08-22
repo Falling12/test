@@ -90,9 +90,11 @@ export interface Config {
   };
   globals: {
     aszf: Aszf;
+    'subscriptions-faq': SubscriptionsFaq;
   };
   globalsSelect: {
     aszf: AszfSelect<false> | AszfSelect<true>;
+    'subscriptions-faq': SubscriptionsFaqSelect<false> | SubscriptionsFaqSelect<true>;
   };
   locale: null;
   user: User & {
@@ -498,10 +500,42 @@ export interface Aszf {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions-faq".
+ */
+export interface SubscriptionsFaq {
+  id: number;
+  questions?:
+    | {
+        question?: string | null;
+        answer?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "aszf_select".
  */
 export interface AszfSelect<T extends boolean = true> {
   content?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions-faq_select".
+ */
+export interface SubscriptionsFaqSelect<T extends boolean = true> {
+  questions?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

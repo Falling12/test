@@ -18,6 +18,7 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from '@/components/ui/drawer'
+import { SubscriptionsFaq } from '@/payload-types'
 
 type SubscriptionType = 'quarterly' | 'halfyearly' | 'yearly'
 
@@ -29,6 +30,7 @@ interface SubscriptionDetailCardProps {
     price_per_year: number
     value: string
     isSelected?: boolean
+    faqData?: SubscriptionsFaq
 }
 
 const getMainPrice = (type: SubscriptionType, props: SubscriptionDetailCardProps) => {
@@ -49,7 +51,7 @@ const getSubText = (type: SubscriptionType) => {
     return textMap[type] ?? ''
 }
 
-export default function SubscriptionDetailCard({ type, value, isSelected, ...priceProps }: SubscriptionDetailCardProps) {
+export default function SubscriptionDetailCard({ type, value, isSelected, faqData, ...priceProps }: SubscriptionDetailCardProps) {
     const [isMobile, setIsMobile] = useState(false)
     const mainPrice = getMainPrice(type, { type, value, ...priceProps })
 
@@ -65,12 +67,25 @@ export default function SubscriptionDetailCard({ type, value, isSelected, ...pri
 
     const contentDetails = (
         <div className='flex flex-col gap-4'>
-            <div className='bg-card rounded-lg p-4 gap-2'>
-                <h4 className='font-semibold text-base text-gray-800'>Muszáj minden hónapban új autót választanom?</h4>
-                <p className='font-normal text-sm text-card-foreground-secondary'>
-                    Lorem ipsum dolor sit amet consectetur. Risus tellus felis rhoncus justo magna. Aliquet sodales commodo ac porta eget arcu. Ac quis cras a sit ut.
-                </p>
-            </div>
+            {faqData?.questions && faqData.questions.length > 0 ? (
+                faqData.questions.map((item, index) => (
+                    <div key={index} className='bg-card rounded-lg p-4 gap-2'>
+                        <h4 className='font-semibold text-base text-gray-800'>
+                            {item?.question || 'Kérdés'}
+                        </h4>
+                        <p className='font-normal text-sm text-card-foreground-secondary'>
+                            {item?.answer || 'Válasz'}
+                        </p>
+                    </div>
+                ))
+            ) : (
+                <div className='bg-card rounded-lg p-4 gap-2'>
+                    <h4 className='font-semibold text-base text-gray-800'>Muszáj minden hónapban új autót választanom?</h4>
+                    <p className='font-normal text-sm text-card-foreground-secondary'>
+                        Lorem ipsum dolor sit amet consectetur. Risus tellus felis rhoncus justo magna. Aliquet sodales commodo ac porta eget arcu. Ac quis cras a sit ut.
+                    </p>
+                </div>
+            )}
         </div>
     )
 

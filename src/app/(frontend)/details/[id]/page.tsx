@@ -1,5 +1,5 @@
 import payloadConfig from '@/payload.config'
-import { Car } from '@/payload-types'
+import { Car, SubscriptionsFaq } from '@/payload-types'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import React from 'react'
@@ -30,6 +30,23 @@ const getCar = async (id: string): Promise<Car | null> => {
         })
 
         return car.docs[0]
+    } catch (error) {
+        console.error(error)
+        return null
+    }
+}
+
+const getSubscriptionsFAQ = async (): Promise<SubscriptionsFaq | null> => {
+    try {
+        const payload = await getPayload({
+            config: payloadConfig
+        })
+
+        const faqData = await payload.findGlobal({
+            slug: 'subscriptions-faq'
+        })
+
+        return faqData
     } catch (error) {
         console.error(error)
         return null
@@ -83,6 +100,7 @@ export default async function CarDetailsPage({
     const { type } = await searchParams ?? {}
 
     const car = await getCar(id)
+    const faqData = await getSubscriptionsFAQ()
 
     if (!car) {
         return notFound()
@@ -256,7 +274,7 @@ export default async function CarDetailsPage({
                                     Előfizetési opciók
                                 </h3>
 
-                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} />
+                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} faqData={faqData || undefined} />
 
                                 <div className='flex items-center justify-center p-3 bg-yellow-100 rounded-md gap-2'>
                                     <p className='text-sm text-[#575757]'>
@@ -274,7 +292,7 @@ export default async function CarDetailsPage({
                     {
                         type === 'is_rentable' && (
                             <div className='hidden'>
-                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} />
+                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} faqData={faqData || undefined} />
                             </div>
                         )
                     }
@@ -282,7 +300,7 @@ export default async function CarDetailsPage({
                     {
                         type === 'is_leasable' && (
                             <div className='hidden'>
-                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} />
+                                <SubscriptionOptionsForm car={car} imageUrl={await getImageUrl(car.preview?.image)} type={type} faqData={faqData || undefined} />
                             </div>
                         )
                     }

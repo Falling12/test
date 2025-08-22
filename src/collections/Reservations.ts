@@ -8,7 +8,8 @@ export const Reservations: CollectionConfig = {
     },
     admin: {
         useAsTitle: 'email',
-        defaultColumns: ['email', 'name', 'phone', 'car']
+        defaultColumns: ['email', 'name', 'phone', 'car'],
+        group: 'Adminisztráció',
     },
     fields: [
         {
