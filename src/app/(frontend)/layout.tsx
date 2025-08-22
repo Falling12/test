@@ -16,15 +16,6 @@ export const metadata = {
   title: 'Leasetown',
 }
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: 'cover',
-  interactiveWidget: 'resizes-content',
-}
-
 export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
