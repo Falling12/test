@@ -490,6 +490,74 @@ export const Cars: CollectionConfig = {
                                 },
                                 {
                                     type: 'array',
+                                    name: 'pricing_matrix',
+                                    label: 'Árazási mátrix',
+                                    admin: {
+                                        description: 'Futamidő, önerő és éves futás kombinációk havi díjjal és maradványértékkel.'
+                                    },
+                                    labels: {
+                                        singular: 'Árkombináció',
+                                        plural: 'Árkombinációk'
+                                    },
+                                    fields: [
+                                        {
+                                            type: 'row',
+                                            fields: [
+                                                {
+                                                    type: 'select',
+                                                    name: 'term_months',
+                                                    label: 'Futamidő (hónap)',
+                                                    required: true,
+                                                    options: [
+                                                        { label: '36', value: '36' },
+                                                        { label: '48', value: '48' },
+                                                    ],
+                                                },
+                                                {
+                                                    type: 'select',
+                                                    name: 'down_payment_percent',
+                                                    label: 'Önerő (%)',
+                                                    required: true,
+                                                    options: [
+                                                        { label: '10%', value: '10' },
+                                                        { label: '20%', value: '20' },
+                                                    ],
+                                                },
+                                                {
+                                                    type: 'select',
+                                                    name: 'annual_mileage_km',
+                                                    label: 'Éves futás (km)',
+                                                    required: true,
+                                                    options: [
+                                                        { label: '20 000', value: '20000' },
+                                                        { label: '30 000', value: '30000' },
+                                                    ],
+                                                },
+                                            ]
+                                        },
+                                        {
+                                            type: 'row',
+                                            fields: [
+                                                {
+                                                    type: 'number',
+                                                    name: 'monthly_fee',
+                                                    label: 'Havi díj (HUF)',
+                                                    required: true,
+                                                    min: 0,
+                                                },
+                                                {
+                                                    type: 'number',
+                                                    name: 'residual_value',
+                                                    label: 'Maradványérték (HUF)',
+                                                    required: true,
+                                                    min: 0,
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    type: 'array',
                                     name: 'benefits',
                                     label: 'Termék előnyök',
                                     labels: {
