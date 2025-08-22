@@ -12,6 +12,7 @@ import SubscriptionOptionsForm from '@/components/details/subscriptionoptionsfor
 import DetailLine from '@/components/details/detailline'
 import DetailParser from '@/components/details/detailparser'
 import BenefitList from '@/components/details/benefitlist'
+import { Metadata } from 'next'
 
 const getCar = async (id: string): Promise<Car | null> => {
     try {
@@ -34,6 +35,41 @@ const getCar = async (id: string): Promise<Car | null> => {
         return null
     }
 }
+
+export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> => {
+    const { id } = await params
+    const car = await getCar(id)
+    return {
+        title: `Leasetown - ${car?.car_details.manufacturer} ${car?.car_details.model}`,
+        description: car?.car_details.additional_info,
+        openGraph: {
+            title: `Leasetown - ${car?.car_details.manufacturer} ${car?.car_details.model}`,
+            images: [await getImageUrl(car?.preview?.image)],
+        },
+    }
+}
+
+export async function generateStaticParams() {
+    try {
+        const payload = await getPayload({
+            config: payloadConfig
+        })
+
+        const cars = await payload.find({
+            collection: 'cars',
+            depth: 1
+        })
+
+        return cars.docs.map((car) => ({
+            id: car.id.toString()
+        }))
+    } catch (error) {
+        return []
+    }
+}
+
+export const dynamicParams = true
+export const revalidate = 3600
 
 export default async function CarDetailsPage({
     params,
@@ -65,11 +101,13 @@ export default async function CarDetailsPage({
                 {
                     type === 'is_rentable' && (
                         <>
-                            <p className='font-bold text-xl text-right'>
-                                {car.packages_prices?.renting?.renting_price_per_month}
-                            </p>
+                            <div className='flex flex-col flex-1 text-left max-[390px]:text-right'>
+                                <p className='font-bold text-xl leading-tight'>
+                                    {car.packages_prices?.renting?.renting_price_per_month}
+                                </p>
+                            </div>
 
-                            <Button variant='default' className='' form="subscription-form" type="submit">
+                            <Button variant='default' className='w-48 flex-shrink-0' form="subscription-form" type="submit">
                                 Szeretném ezt az autót
                             </Button>
                         </>
@@ -225,7 +263,7 @@ export default async function CarDetailsPage({
                                     </p>
                                 </div>
 
-                                <Button variant='default' className='w-full' form="subscription-form" type="submit">
+                                <Button variant='default' className='w-full max-[768px]:hidden' form="subscription-form" type="submit">
                                     Szeretném ezt az autót
                                 </Button>
                             </div>

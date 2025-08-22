@@ -173,7 +173,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
   const defaultFilter = filter || 'is_rentable'
 
   return (
-    <div className="flex flex-col gap-8 px-[15%] py-8 max-[1400px]:px-[10%] max-[900px]:px-[3%]">
+    <div className="flex flex-col gap-5 px-[15%] py-5 max-[1400px]:px-[10%] max-[900px]:px-[3%]">
       {/* <h1 className="font-semibold text-3xl">
         Elérhető autóink
       </h1> */}

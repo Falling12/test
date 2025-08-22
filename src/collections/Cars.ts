@@ -1,3 +1,4 @@
+import { revalidateDetailsPage } from '@/lib/revalidatePage';
 import { CollectionConfig } from 'payload'
 
 export const Cars: CollectionConfig = {
@@ -10,6 +11,13 @@ export const Cars: CollectionConfig = {
         group: 'Adminisztráció',
         useAsTitle: 'model',
         defaultColumns: ['car_details.manufacturer', 'car_details.model', 'car_details.year', 'car_details.kilometers'],
+    },
+    hooks: {
+        afterChange: [
+            ({ doc }) => {
+                revalidateDetailsPage(doc.id)
+            }
+        ]
     },
     fields: [
         {

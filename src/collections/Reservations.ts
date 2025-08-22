@@ -6,6 +6,10 @@ export const Reservations: CollectionConfig = {
         singular: 'Foglalás',
         plural: 'Foglalások'
     },
+    admin: {
+        useAsTitle: 'email',
+        defaultColumns: ['email', 'name', 'phone', 'car']
+    },
     fields: [
         {
             name: 'email',

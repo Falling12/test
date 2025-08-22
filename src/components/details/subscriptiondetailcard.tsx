@@ -114,7 +114,7 @@ export default function SubscriptionDetailCard({ type, value, isSelected, ...pri
                 </FormControl>
 
                 <div className='flex flex-col gap-1'>
-                    <p className='font-semibold text-base'>{mainPrice.toLocaleString('hu-HU', { style: 'currency', currency: 'HUF', minimumFractionDigits: 0, maximumFractionDigits: 0 })} / hónap</p>
+                    <p className='font-semibold text-base'>{new Intl.NumberFormat('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(mainPrice)} Ft / hónap</p>
                     <p className='text-xs text-muted-foreground'>{getSubText(type)}</p>
                 </div>
             </div>

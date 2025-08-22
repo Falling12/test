@@ -38,9 +38,9 @@ export default async function CarCard({ car, filter }: CarCardProps) {
             default:
                 const subscriptionPrice = car.packages_prices?.subscription?.subscription_price_per_year ?? 0
                 return {
-                    price: subscriptionPrice.toLocaleString('hu-HU', { style: 'currency', currency: 'HUF', minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+                    price: subscriptionPrice.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
                     label: 'Havi',
-                    suffix: '-tól'
+                    suffix: 'Ft-tól'
                 }
         }
         return {
@@ -53,7 +53,7 @@ export default async function CarCard({ car, filter }: CarCardProps) {
     const { price, label, suffix } = getPriceDisplay()
 
     return (
-        <Link href={href} className="relative w-full aspect-[378/339] group hover:translate-y-[-5px] transition-all duration-300" scroll={true}>
+        <Link href={href} className="relative w-full aspect-[378/339] group hover:translate-y-[-5px] transition-all duration-300" scroll={false}>
             <Image
                 src={await getImageUrl(car.preview?.image)}
                 alt={getImageAlt(car.preview?.image)}
@@ -71,6 +71,12 @@ export default async function CarCard({ car, filter }: CarCardProps) {
                 <div className='flex flex-col gap-2 py-6 px-4' style={{
                     backgroundImage: 'linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%)'
                 }}>
+                    <div className='border rounded-full py-1 px-2 border-white/30 flex items-center justify-center w-fit'>
+                        <p className='text-white text-xs font-medium'>
+                            Átvehető: {new Date(car.car_details.handover?.handover_date ?? '').toLocaleDateString('hu-HU', { day: '2-digit', month: '2-digit', year: 'numeric' })}-tól
+                        </p>
+                    </div>
+
                     <div className='flex items-center gap-2'>
                         {car.car_details.kilometers && <DetailChip label={`${car.car_details.kilometers} km`} variant='light' />}
                         {car.car_details.year && <DetailChip label={`${car.car_details.year}`} variant='light' />}
