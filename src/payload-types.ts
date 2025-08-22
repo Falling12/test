@@ -233,6 +233,19 @@ export interface Car {
     lease?: {
       is_leasable?: boolean | null;
       lease_price_per_month?: string | null;
+      /**
+       * Futamidő, önerő és éves futás kombinációk havi díjjal és maradványértékkel.
+       */
+      pricing_matrix?:
+        | {
+            term_months: '36' | '48';
+            down_payment_percent: '10' | '20';
+            annual_mileage_km: '20000' | '30000';
+            monthly_fee: number;
+            residual_value: number;
+            id?: string | null;
+          }[]
+        | null;
       benefits?:
         | {
             icon?: (number | null) | Media;
@@ -449,6 +462,16 @@ export interface CarsSelect<T extends boolean = true> {
           | {
               is_leasable?: T;
               lease_price_per_month?: T;
+              pricing_matrix?:
+                | T
+                | {
+                    term_months?: T;
+                    down_payment_percent?: T;
+                    annual_mileage_km?: T;
+                    monthly_fee?: T;
+                    residual_value?: T;
+                    id?: T;
+                  };
               benefits?:
                 | T
                 | {
